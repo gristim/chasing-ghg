@@ -80,6 +80,8 @@ and not *gnome-classic*.
 
 ### Alternative GUI: VSCode Remote SSH (Recommended)
 
+% TODO: include info about installing ssh extensions, and maybe others (ctrl+shift+x)
+
 In VSCode you have the option to connect to a remote server through SSH,
 utilizing the Microsoft SSH remote tunnel extension. 
 
@@ -169,6 +171,94 @@ qsub -I -N interactive -l select=1:ncpus=8:mem=64gb -l walltime=4:0:0
 The current limit is 80 CPUs and about 182GB of memory for a max 6-hour
 wallclock time. Make sure to exit the session with `exit` to free the resources
 once finished.
+
+## Running Polyphemus
+
+The file you will want to be running is `Example_Inv_Several_Sources_Slice.py`.
+This is the bread and butter of you will be doing, at least if you're working on
+the gaussian plume model. Hopefully by the time you're reading this, at least
+you've heard about this. If not, you're in for a wild ride. 
+
+The scripts for running Polyphemus can be found at
+https://github.com/gristim/chasing-ghg-polyphemus. Simply clone this repository
+into the server to use the scripts there.   
+
+### Overview
+
+Polyphemus is a complex atmospheric modelling software, written in FORTRAN and
+C++. Currently we are only using a very small subset of the capabilities of the
+software: modelling a gas dispersion in a gaussian plume. This model is accessed
+through a python wrapper layer called atmopy. Unfortunately, this wrapper has
+not been updated in many years, so we remain on legacy Python 2.7. You will not
+need to code in C++ or FORTRAN, only in Python. In fact, very minimal coding
+ability is required. You are primarily responsible for modifying a few variables
+of the script to adapt to the model to specific weather conditions. 
+
+Generally speaking, the general workflow involves selecting transects containing
+plumes near the site of interest. For more details on cutting transects, see
+`cutting_transects.ipynb` in this repository. From there, known or suspected
+source emission locations are selected and the model computes the theoretical
+concentrations you would measure across the transect based on the specified
+weather conditions. It then attempts to perform an inversion to match the areas
+under the curves with that of actual measurements, in each of the slices (marked
+by vertical dotted lines). Finally, a posterior flux estimate is given and
+result files are generated. 
+
+### Usage
+
+1. Upload desired transect csv files into the `Data` folder in the root
+   directory. The files must be structured
+   `Data/<site>/<platform>/<date/transect.csv`
+    - site is the name of the site like SteSophie or Petrolia
+    - platform is the name of measurement instrument like LICOR or Picarro 
+    - date is well the date, ideally formatted as `yyyy-mm-dd`
+2. Configure `Example_Inv_Several_Sources_slice.py` to your desired run
+   conditions. These will all be at the top of the file in the parameters or
+   sources sections.
+   - Input the filename of the transect in the variable `data_file`. 
+   - Set the stability class under the variable `SC`. See the section on
+     [stability classes](#a-note-on-stability-classes-sc). 
+   - Set the variable `site` to be the site object. Don't forget the brackets to
+     instantiate the object. It must be defined in the `sources.py` file as a
+     class containing source data. There are instructions in that file for
+     creating new classes. 
+   - Immediately below, set the correct values for `platform` and `date` as down
+     in step 1. 
+   - Select your number of sources with `nbsource`
+   - Specify the sources you would like to use with the following syntax:
+     `source_<num> = site.<source_name>`
+3. Run the script with `python Example_Inv_Several_Sources_slice.py`. Do not
+   forget to import the packages or it will not work. The results will be in
+   `Polyphemus/results/<site>/<platform>/<date>/`. The most important files to
+   look at to the evaluate the model `Transect_total_fa.png` followed by
+   `plume_total_fa.png` and sometimes `Plumes.png`. 
+    - `Transect_total_fa.png` shows the instrument data in black, with red dots
+      indicating the measured data points. The blue curve indicates the
+      estimates based on the prior emissions data, this is not super important.
+      The more important one is the green curve, which is the posterior
+      estimates, after the inversion. The objective is to have the green curve
+      match as closely as the black line. The height and shape of the major
+      peaks should be prioritized over the exact locations and minor
+      fluctuations.
+    - `plume_total_fa.png` shows the plume from a top-down view. It may be
+      helpful to see if the wind direction is correct or if it needs to be
+      tweaked. Wind direction is highly variable and is expected to fluctuate.
+    - `Plumes.png` is similar to `Transect_total_fa.png`, except that it shows prior estimates. It is useful to help diagnosing why fits may not work well, and also reveals where the slices are divided (shown as dotted vertical lines). 
+4. Likely, the fit won't be great on your first try. You will have to tweak many
+   parameters, including the ones listed above. In order of likelihood you will
+   have to adjust these: 
+    - wd_adjust: offsets the wind direction. 
+    - SC: changes the propagation of the plume (width)
+    - sources: adding or removing sources based on the transect
+    - manual_ws_override and ws: allows you manually set the wind speed if the
+      values measured the instruments are outrageous. Use relevant weather data
+      from nearby stations if necessary. 
+
+
+Pro tip: Using tab in the terminal can help autocomplete the file paths, like
+the name for the python file. The up arrow key allows you to navigate to
+previous commands given so you can run the same line without retyping it. You're
+welcome.
 
 
 ## Troubleshooting
