@@ -116,7 +116,7 @@ Open the command palette [`ctrl+shift+p`] and type in: *Remote-SSH: Open SSH
 Configuration File...* The option should appear once you've typed a few
 characters. If you are prompted to select between multiple files, choose the
 local one (generally will have you username in the path). Paste in the
-following, replacing `<remoteuser\>` with your username in the form of `abc123`,
+following, replacing `<remoteuser>` with your username in the form of `abc123`,
 and local user name (appears in the path `C:/Users/<localuser>`). Note that this
 configuration assumes you want to connect to the ppp5 through hpcr5 (double
 ssh).
