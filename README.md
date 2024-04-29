@@ -1,5 +1,32 @@
 # chasing-ghg
 
+## Table of Contents
+- [chasing-ghg](#chasing-ghg)
+  - [Table of Contents](#table-of-contents)
+  - [Accessing the ECCC Remote Server](#accessing-the-eccc-remote-server)
+    - [Test Run Polyphemus](#test-run-polyphemus)
+    - [Setting Up a GUI](#setting-up-a-gui)
+    - [Alternative GUI: VSCode Remote SSH (Recommended)](#alternative-gui-vscode-remote-ssh-recommended)
+    - [Transferring Files](#transferring-files)
+    - [Changing Your Password](#changing-your-password)
+    - [Performing Complex Computations](#performing-complex-computations)
+  - [Running Polyphemus](#running-polyphemus)
+    - [Overview](#overview)
+    - [Usage](#usage)
+  - [Troubleshooting](#troubleshooting)
+    - [Connection Errors](#connection-errors)
+    - [Issues with SSH](#issues-with-ssh)
+      - [Corrupted MAC on input](#corrupted-mac-on-input)
+      - [SSH Failed - ECONNRESET](#ssh-failed---econnreset)
+    - [No such file or directory: 'Methane.bin'](#no-such-file-or-directory-methanebin)
+    - [/usr/bin/python: can't open file](#usrbinpython-cant-open-file)
+    - [No module named... the script doesn't run correctly](#no-module-named-the-script-doesnt-run-correctly)
+  - [General Notes](#general-notes)
+    - [Weather Data](#weather-data)
+    - [A Note on Stability Classes (SC)](#a-note-on-stability-classes-sc)
+  - [Changelog](#changelog)
+
+
 ## Accessing the ECCC Remote Server
 
 We currently have a system running the model on the government servers. To
@@ -80,7 +107,7 @@ and not *gnome-classic*.
 
 ### Alternative GUI: VSCode Remote SSH (Recommended)
 
-% TODO: include info about installing ssh extensions, and maybe others (ctrl+shift+x)
+This method requires the `Remote - SSH` extension to be installed. To install, open the extensions tab (`ctrl+shift+x`), and search for the extension then click the install button. You may also want to install other extensions relevant to your workflow, like python for linting or themes. 
 
 In VSCode you have the option to connect to a remote server through SSH,
 utilizing the Microsoft SSH remote tunnel extension. 
@@ -183,6 +210,8 @@ The scripts for running Polyphemus can be found at
 https://github.com/gristim/chasing-ghg-polyphemus. Simply clone this repository
 into the server to use the scripts there.   
 
+Edit: As of I have no clue when (or if its permanent), you can no longer connect to the outside internet from within the government compute servers. As a workaround, you can download or clone the repository, then manually upload it to the server. Note that drag and drop functionality works on an SSH instance of vscode. 
+
 ### Overview
 
 Polyphemus is a complex atmospheric modelling software, written in FORTRAN and
@@ -247,19 +276,20 @@ result files are generated.
 4. Likely, the fit won't be great on your first try. You will have to tweak many
    parameters, including the ones listed above. In order of likelihood you will
    have to adjust these: 
-    - wd_adjust: offsets the wind direction. 
-    - SC: changes the propagation of the plume (width)
-    - sources: adding or removing sources based on the transect
-    - manual_ws_override and ws: allows you manually set the wind speed if the
-      values measured the instruments are outrageous. Use relevant weather data
-      from nearby stations if necessary. 
-
+    - `wd_adjust`: offsets the wind direction from the measured value. 
+    - `SC`: changes the propagation of the plume (width).
+    - `nb_sources`: adding or removing sources based on the transect. The
+      source data must also be adjusted accordingly (`source_1`, `source_2`,
+      etc...)
+    - `manual_ws_override` and `ws`: allows you manually set the wind speed
+      if the values measured the instruments are outrageous. Use relevant
+      weather data from nearby stations if necessary. 
+    - There are other parameters that can be changed not listed here. The majority should have comments describing their behaviour. If they do not have a comment and are not listed above, chances are they do not need to be changed (like `pbl` or `rate`).
 
 Pro tip: Using tab in the terminal can help autocomplete the file paths, like
 the name for the python file. The up arrow key allows you to navigate to
 previous commands given so you can run the same line without retyping it. You're
 welcome.
-
 
 ## Troubleshooting
 
@@ -276,8 +306,8 @@ there is no WiFi in the office.
 
 MAC or message authentication code errors are about the authentication
 algorithm. You can try adding `-m` to the ssh command with an acceptable
-algorithm. `ssh -m hmac-sha2-512` worked for me. To get a list of available
-algorithms, run 
+algorithm. For example, `ssh -m hmac-sha2-512` worked for me, but this may or
+may not work for you. To get a list of available algorithms, run 
 
 ```
 ssh -Q mac
@@ -317,7 +347,7 @@ You did not import the packages into your shell environment. you need to do this
 ## General Notes
 
 ### Weather Data
-- Dataset times are usually recorded in UTC
+- Dataset times are almost always recorded in UTC
 - Weather data from [climate.weather.gc.ca](climate.weather.gc.ca) can be in UTC
   or LST. LST does NOT account for daylight saving time (i.e. always gives EST);
   you need too add an hour for daylight saving time (which we don't need to do).
@@ -343,3 +373,29 @@ You did not import the packages into your shell environment. you need to do this
   sigma theta. See
   [this](http://hps.ne.uiuc.edu/numug/archive/2003/presentations/paynter.pdf)
   paper's section on stability class for more details. 
+
+## Changelog
+
+- `sources.py`: all source data is now in a separate file. 
+- Most changeable parameters in `Examples_Inv_Several_Sources_slice.py` are now
+  at the top of the file. There are a few new parameters:
+  - `wd_adjust`: offsets the wind direction from the measured value.
+  - `manual_ws_override` and `ws`: allows you manually set the wind speed
+    if the values measured the instruments are outrageous. Use relevant
+    weather data from nearby stations if necessary. 
+  - `weather_data_file`: specify an alternate transect file with the same
+    time stamps for weather data. If blank, uses the weather data in transect
+    specified in `data_file`. 
+  - `transect_slice`: a slice object for the dataframe containing the transect
+    data. Useful to clipping the beginning and ends of a transect if they were
+    not cut nicely, or to only take a specific portion of the transect (i.e.
+    isolating one peak). `slice(None)` is the default value and does not slice
+    the transect. See python documentation on slices for more details on syntax. 
+  - `start_drop_index` and `stop_drop_index`: list indices to specify a range to
+    drop from the transect. Similar to `transect_slice`, except that this
+    removes data from a section in the middle of the transect, rather than at
+    the ends.
+- Add in a hard coded section on using Qube wind data for Petrolia. 
+- Create a new prototype for a 3D plot of the plume model results. 
+      
+TODO: Transect Averaging
