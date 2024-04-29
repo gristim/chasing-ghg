@@ -285,6 +285,14 @@ result files are generated.
       if the values measured the instruments are outrageous. Use relevant
       weather data from nearby stations if necessary. 
     - There are other parameters that can be changed not listed here. The majority should have comments describing their behaviour. If they do not have a comment and are not listed above, chances are they do not need to be changed (like `pbl` or `rate`).
+5. After running the model, the script will prompt you on whether or not you'd
+like to save the results. If the results are satisfactory, then type `y`
+otherwise leave it blank or type `n`. You will then be prompted to give a rating
+from 1-3, based on the quality of the fit: 1 is best, 3 is worst. Finally, you
+are given an opportunity to provide comments on sources used, specific fitting
+techniques, variables, etc... The results are then saved to a separate
+results.csv file in the root directory. These are preformatted to fit well in the colour coded excel files for summary estimates. See the OneDrive for examples.
+TODO: Explain results. 
 
 Pro tip: Using tab in the terminal can help autocomplete the file paths, like
 the name for the python file. The up arrow key allows you to navigate to
