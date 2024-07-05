@@ -292,7 +292,9 @@ from 1-3, based on the quality of the fit: 1 is best, 3 is worst. Finally, you
 are given an opportunity to provide comments on sources used, specific fitting
 techniques, variables, etc... The results are then saved to a separate
 results.csv file in the root directory. These are preformatted to fit well in the colour coded excel files for summary estimates. See the OneDrive for examples.
-TODO: Explain results. 
+
+
+[//]: <> (TODO: Explain results)
 
 Pro tip: Using tab in the terminal can help autocomplete the file paths, like
 the name for the python file. The up arrow key allows you to navigate to
@@ -405,5 +407,5 @@ You did not import the packages into your shell environment. you need to do this
     the ends.
 - Add in a hard coded section on using Qube wind data for Petrolia. 
 - Create a new prototype for a 3D plot of the plume model results. 
-      
-TODO: Transect Averaging
+
+[//]: <> (Transect Averaging)
